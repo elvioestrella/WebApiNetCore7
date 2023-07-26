@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "4ISjJFEo9SzVawnfrbkgbGmnv5fF61xOpTeukf0Ary8=",
+  "Source": "ProveedoresIntranetWebApi",
+  "BasePath": "_content/ProveedoresIntranetWebApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
