@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ProveedoresIntranetWebApi.Middleware;
 using ProveedoresIntranetWebApi.Models;
 using ProveedoresIntranetWebApi.Token;
+using System.Net;
 
 namespace ProveedoresIntranetWebApi.Data.NotasDeCreditos
 {
@@ -22,6 +24,22 @@ namespace ProveedoresIntranetWebApi.Data.NotasDeCreditos
         {
             var usuario = await _userManager.FindByNameAsync(_usuarioSesion.ObtenerUsuarioSesion());
 
+            if (usuario is null)
+            {
+                throw new MiddlewareException(
+                    HttpStatusCode.Unauthorized,
+                    new { mensaje = "El usuario no es valido para hacer esta inserción" }
+                );
+            }
+
+            if (NotaDeCredito is null)
+            {
+                throw new MiddlewareException(
+                    HttpStatusCode.BadRequest,
+                    new { mensaje = "Los datos de la nota de crédito son incorrectos." }
+                );
+            }
+
             NotaDeCredito.FechaCreacion = DateTime.Now;
             NotaDeCredito.UsuarioId = Guid.Parse(usuario!.Id);
 
@@ -31,17 +49,46 @@ namespace ProveedoresIntranetWebApi.Data.NotasDeCreditos
         public async Task DeleteNotaDeCreditoById(int id)
         {
             var notaDeCredito = await _contexto.NotaDeCredito!.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (notaDeCredito is null)
+            {
+                throw new MiddlewareException(
+                    HttpStatusCode.BadRequest,
+                    new { mensaje = "No se encontro esta nota de crédito para ser eliminada." }
+                );
+            }
+
             _contexto.NotaDeCredito!.Remove(notaDeCredito!);
         }
 
         public async Task<IEnumerable<NotaDeCredito>> GetAllNotasDeCreditos()
         {
-            return await _contexto.NotaDeCredito!.ToListAsync();
+            var resultado =  await _contexto.NotaDeCredito!.ToListAsync();
+
+            if (resultado.Count == 0)
+            {
+                throw new MiddlewareException(
+                    HttpStatusCode.NotFound,
+                    new { mensaje = "No tienes nota de crédito disponibles." }
+                );
+            }
+
+            return resultado;
         }
 
         public async Task<NotaDeCredito?> GetNotasDeCreditosById(int id)
         {
-            return await _contexto.NotaDeCredito.FirstOrDefaultAsync(x => x.Id == id)!;
+            var resultado = await _contexto.NotaDeCredito.FirstOrDefaultAsync(x => x.Id == id)!;
+
+            if (resultado is null)
+            {
+                throw new MiddlewareException(
+                    HttpStatusCode.BadRequest,
+                    new { mensaje = "Nota de crédito no encontrada." }
+                );
+            }
+
+            return resultado;
         }
 
         public bool SaveChanges()
